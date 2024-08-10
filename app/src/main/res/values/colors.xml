@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <color name="lightGray">#F9F9F9</color>
+    <color name="mediumGray">#D1D1D1</color>
+    <color name="lightMediumGray">#80D1D1D1</color>
+    <color name="darkGray">#4B4B4B</color>
+    <color name="dark">#313C44</color>
+    <color name="darker">#151B20</color>
+    <color name="red">#FF4646</color>
+    <color name="yellow">#FFC114</color>
+    <color name="green">#00C980</color>
+    <color name="light_blue">#F2F1F6</color>
+
+
+    <color name="type_normal">#A8A878</color>
+    <color name="type_fire">#F08030</color>
+    <color name="type_water">#6890F0</color>
+    <color name="type_electric">#F8D030</color>
+    <color name="type_grass">#78C850</color>
+    <color name="type_ice">#98D8D8</color>
+    <color name="type_fighting">#C03028</color>
+    <color name="type_poison">#A040A0</color>
+    <color name="type_ground">#E0C068</color>
+    <color name="type_flying">#A890F0</color>
+    <color name="type_psychic">#F85888</color>
+    <color name="type_bug">#A8B820</color>
+    <color name="type_rock">#B8A038</color>
+    <color name="type_ghost">#705898</color>
+    <color name="type_dragon">#7038F8</color>
+    <color name="type_dark">#705848</color>
+    <color name="type_steel">#B8B8D0</color>
+    <color name="type_fairy">#EE99AC</color>
+</resources>
