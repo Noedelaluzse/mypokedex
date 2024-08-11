@@ -29,9 +29,12 @@ class PokemonLocalDatasource( applicationContext: Context) {
         }
     }
 
+    fun getFavoritePokemon(name: String): PokemonEntity?{
+        return db.pokemonDao().getFavoritePokemon(name)
+    }
 
-    suspend fun getPokemonById(id: String): PokemonDetail {
-        TODO("Not yet implemented")
+    fun updateFavoritePokemon(name: String, isFavorite: Int): Int {
+        return db.pokemonDao().updateFavoritePokemon(name, isFavorite)
     }
 
     suspend fun savePokemon(pokemonList: List<PokemonResponse>): Boolean {

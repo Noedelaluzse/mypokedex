@@ -13,7 +13,7 @@
     <color name="yellow">#FFC114</color>
     <color name="green">#00C980</color>
     <color name="light_blue">#F2F1F6</color>
-
+    <color name="placholdercolor">@color/mediumGray</color>
 
     <color name="type_normal">#A8A878</color>
     <color name="type_fire">#F08030</color>
@@ -33,4 +33,10 @@
     <color name="type_dark">#705848</color>
     <color name="type_steel">#B8B8D0</color>
     <color name="type_fairy">#EE99AC</color>
+
+    <color name="primary_color">#f44034</color>
+    <color name="primary_variant_color">#ffec3d</color>
+    <color name="secondary_color">#4cae4f</color>
+    <color name="secondary_variant_color">#2094f3</color>
+    <color name="background_color">#9b27b0</color>
 </resources>

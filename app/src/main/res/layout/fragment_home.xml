@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.motion.widget.MotionLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -7,29 +7,66 @@
     app:layoutDescription="@xml/fragment_home_scene"
     tools:context=".presentation.ui.fragments.home.HomeFragment">
 
-
-    <ImageView
-        android:id="@+id/title_pokedex"
-        android:layout_width="205dp"
-        android:layout_height="105dp"
-        android:src="@drawable/pokedex_logo"
+    <com.facebook.shimmer.ShimmerFrameLayout
+        android:id="@+id/shimmer"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="1dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="1dp"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:columnCount="2">
+
+            <include layout="@layout/placeholder_row_layout" />
+
+            <include layout="@layout/placeholder_row_layout" />
+
+            <include layout="@layout/placeholder_row_layout" />
+
+            <include layout="@layout/placeholder_row_layout" />
+
+            <include layout="@layout/placeholder_row_layout" />
+
+            <include layout="@layout/placeholder_row_layout" />
+
+            <include layout="@layout/placeholder_row_layout" />
+
+            <include layout="@layout/placeholder_row_layout" />
+
+            <include layout="@layout/placeholder_row_layout" />
+
+            <include layout="@layout/placeholder_row_layout" />
+
+            <include layout="@layout/placeholder_row_layout" />
+
+            <include layout="@layout/placeholder_row_layout" />
+
+        </GridLayout>
+    </com.facebook.shimmer.ShimmerFrameLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/pokemon_recyclerview"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:visibility="gone"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/title_pokedex"
+        app:layout_constraintTop_toTopOf="parent"
         tools:itemCount="5"
         tools:listitem="@layout/pokemon_row_layout">
 
     </androidx.recyclerview.widget.RecyclerView>
 
 
-</androidx.constraintlayout.motion.widget.MotionLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

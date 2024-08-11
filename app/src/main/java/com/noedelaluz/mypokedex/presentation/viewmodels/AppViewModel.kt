@@ -9,12 +9,15 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
+import com.noedelaluz.mypokedex.data.database.entities.PokemonEntity
 import com.noedelaluz.mypokedex.domain.models.PokemonDetail
 import com.noedelaluz.mypokedex.domain.models.PokemonListResponse
 import com.noedelaluz.mypokedex.domain.models.PokemonResponse
 import com.noedelaluz.mypokedex.domain.usecase.pokemon.GetAllPokemon
 import com.noedelaluz.mypokedex.domain.usecase.pokemon.GetPokemonDetails
 import com.noedelaluz.mypokedex.domain.usecase.pokemon.GetPokemonFromCache
+import com.noedelaluz.mypokedex.domain.usecase.pokemon.IsFavoritePokemon
+import com.noedelaluz.mypokedex.domain.usecase.pokemon.SaveFavoritePokemon
 import com.noedelaluz.mypokedex.domain.usecase.pokemon.SavePokemonDB
 import com.noedelaluz.mypokedex.infrastructure.datasources.PokemonDatasourceImpl
 import com.noedelaluz.mypokedex.infrastructure.datasources.PokemonLocalDatasource
@@ -37,10 +40,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     // Use Cases Local
     private val insertPokemonUseCase = SavePokemonDB(repository)
     private val getPokemonFromCache = GetPokemonFromCache(repository)
+    private val isFavoritePokemon = IsFavoritePokemon(repository)
+    private val updateFavoritePokemon = SaveFavoritePokemon(repository)
 
     /*** ROOM DATABASE **/
     val readPokemon: LiveData<PokemonListResponse> = getPokemonFromCache.execute().asLiveData()
-
+    var favoritePokemon: MutableLiveData<PokemonEntity?> = MutableLiveData()
     /** RETROFIT **/
     var pokemonResponse: MutableLiveData<NetworkResult<PokemonListResponse>> = MutableLiveData()
     var pokemonDetailReponse: MutableLiveData<NetworkResult<PokemonDetail>> = MutableLiveData()
@@ -52,6 +57,19 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     fun getPokemonDetails(id: String) = viewModelScope.launch {
         getPokemonDetailsSafeCall(id)
+    }
+
+    fun isFavoritePokemon(name: String) = viewModelScope.launch(Dispatchers.IO) {
+        favoritePokemon.postValue(isFavoritePokemon.execute(name))
+    }
+
+
+    fun saveFavoritePokemon(name: String, isFavorite: Int) = viewModelScope.launch {
+        updatePokemon(name, isFavorite)
+    }
+
+    private fun updatePokemon(name: String, isFavorite: Int) = viewModelScope.launch(Dispatchers.IO) {
+        updateFavoritePokemon.execute(name, isFavorite)
     }
 
     private suspend fun getPokemonDetailsSafeCall(id: String) {

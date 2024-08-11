@@ -38,30 +38,41 @@
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/container_pokemon_profile"
                 android:layout_width="match_parent"
-                android:layout_height="260dp">
+                android:layout_height="250dp"
+                android:background="#E34F4F">
 
+                <ImageView
+                    android:id="@+id/imageView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="0dp"
+                    android:src="@drawable/arc_3"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" />
 
                 <ProgressBar
                     android:id="@+id/progress_pokemon_profile"
                     style="?android:attr/progressBarStyle"
                     android:layout_width="50dp"
                     android:layout_height="50dp"
-                    android:progressBackgroundTint="@color/black"
                     android:indeterminateTint="@color/black"
+                    android:progressBackgroundTint="@color/black"
                     app:layout_constraintBottom_toBottomOf="@+id/img_pokemon_profile"
                     app:layout_constraintEnd_toEndOf="@+id/img_pokemon_profile"
                     app:layout_constraintStart_toStartOf="@+id/img_pokemon_profile"
                     app:layout_constraintTop_toTopOf="@+id/img_pokemon_profile" />
 
                 <ImageView
-                    android:id="@+id/imageView4"
+                    android:id="@+id/like_button"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:layout_marginTop="42dp"
                     android:layout_marginEnd="32dp"
-                    android:src="@drawable/ic_favorite"
+                    android:src="@drawable/ic_dislike"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
+
 
                 <TextView
                     android:id="@+id/id_pokemon"
@@ -77,20 +88,10 @@
                     tools:text="#001" />
 
                 <ImageView
-                    android:id="@+id/imageView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/arc_3"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent" />
-
-                <ImageView
                     android:id="@+id/img_pokemon_profile"
                     android:layout_width="150dp"
                     android:layout_height="150dp"
                     android:layout_marginTop="16dp"
-                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/id_pokemon"
@@ -137,7 +138,8 @@
                 android:layout_marginBottom="2dp"
                 android:gravity="center"
                 android:orientation="horizontal"
-                android:visibility="visible">
+                android:visibility="visible"
+                tools:visibility="invisible">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -173,7 +175,8 @@
                 android:layout_height="match_parent"
                 android:gravity="center"
                 android:orientation="horizontal"
-                android:visibility="visible">
+                android:visibility="visible"
+                tools:visibility="invisible">
 
                 <com.google.android.material.chip.ChipGroup
                     android:id="@+id/chipGroupType"
@@ -193,13 +196,15 @@
                 android:textAlignment="center"
                 android:textColor="@color/black"
                 android:textSize="20sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                tools:visibility="invisible" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:gravity="center"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                tools:visibility="invisible">
 
                 <LinearLayout
                     android:id="@+id/container_stats"
@@ -433,15 +438,17 @@
                 android:text="Abilities"
                 android:textAlignment="center"
                 android:textColor="@color/black"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:textSize="24sp"
+                android:textStyle="bold"
+                tools:visibility="visible" />
 
             <LinearLayout
                 android:id="@+id/container_abilities"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:gravity="center"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                tools:visibility="invisible">
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recycler_abilities"
@@ -461,7 +468,7 @@
                 android:text="Sprites"
                 android:textAlignment="center"
                 android:textColor="@color/black"
-                android:textSize="20sp"
+                android:textSize="24sp"
                 android:textStyle="bold" />
 
             <LinearLayout

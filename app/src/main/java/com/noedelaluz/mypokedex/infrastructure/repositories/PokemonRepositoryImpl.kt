@@ -1,5 +1,6 @@
 package com.noedelaluz.mypokedex.infrastructure.repositories
 
+import com.noedelaluz.mypokedex.data.database.entities.PokemonEntity
 import com.noedelaluz.mypokedex.domain.datasources.PokemonDatasource
 import com.noedelaluz.mypokedex.domain.models.PokemonDetail
 import com.noedelaluz.mypokedex.domain.models.PokemonListResponse
@@ -28,6 +29,14 @@ class PokemonRepositoryImpl(
     override suspend fun savePokemonDetail(): Boolean {
         TODO("Not yet implemented")
         return false
+    }
+
+    override suspend fun isFavoritePokemon(name: String): PokemonEntity? {
+        return this.local.getFavoritePokemon(name)
+    }
+
+    override suspend fun saveFavoritePokemon(name: String, isFavorite: Int): Int {
+        return this.local.updateFavoritePokemon(name, isFavorite)
     }
 
     override fun getPokemonList(): Flow<PokemonListResponse> {

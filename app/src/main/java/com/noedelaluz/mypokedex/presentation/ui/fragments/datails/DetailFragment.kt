@@ -19,9 +19,11 @@ import com.noedelaluz.mypokedex.databinding.FragmentDetailBinding
 import com.noedelaluz.mypokedex.domain.models.PokemonDetail
 import com.noedelaluz.mypokedex.infrastructure.utils.NetworkListener
 import com.noedelaluz.mypokedex.infrastructure.utils.NetworkResult
+import com.noedelaluz.mypokedex.infrastructure.utils.observeOnce
 import com.noedelaluz.mypokedex.presentation.ui.adapters.AbilitiesAdapter
 import com.noedelaluz.mypokedex.presentation.ui.adapters.SpriteAdapter
 import com.noedelaluz.mypokedex.presentation.viewmodels.AppViewModel
+import kotlinx.coroutines.launch
 
 
 class DetailFragment : Fragment() {
@@ -38,6 +40,8 @@ class DetailFragment : Fragment() {
 
     private val args: DetailFragmentArgs by navArgs()
 
+    private var pokemonSaved = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         appviewModel = ViewModelProvider(requireActivity())[AppViewModel::class.java]
@@ -48,6 +52,20 @@ class DetailFragment : Fragment() {
     ): View {
         _binding = FragmentDetailBinding.inflate(inflater, container, false)
 
+        checkSavedPokemon()
+
+        binding.likeButton.setOnClickListener {
+            if (pokemonSaved) {
+                appviewModel.saveFavoritePokemon(args.pokemonName, 0)
+                binding.likeButton.setImageResource(R.drawable.ic_dislike)
+                pokemonSaved = false
+            } else {
+                appviewModel.saveFavoritePokemon(args.pokemonName, 1)
+                binding.likeButton.setImageResource(R.drawable.ic_favorite)
+                pokemonSaved = true
+            }
+        }
+
         setUpRecyclerView()
 
         viewLifecycleOwner.lifecycleScope.launchWhenStarted {
@@ -55,10 +73,23 @@ class DetailFragment : Fragment() {
             networkListener.checkNetworkAvailability(requireContext()).collect {
                 status ->
                 Log.d("NetworkListener", status.toString())
+                appviewModel.isFavoritePokemon(args.pokemonName)
                 requestApiData()
             }
         }
         return binding.root
+    }
+
+    private fun checkSavedPokemon() {
+        appviewModel.favoritePokemon.observe(viewLifecycleOwner) { favoritePokemon ->
+            if (favoritePokemon == null) {
+                binding.likeButton.setImageResource(R.drawable.ic_dislike)
+                pokemonSaved = false
+            } else {
+                binding.likeButton.setImageResource(R.drawable.ic_favorite)
+                pokemonSaved = true
+            }
+        }
     }
 
     private fun requestApiData() {
@@ -91,7 +122,7 @@ class DetailFragment : Fragment() {
         binding.backButton.setOnClickListener {
             findNavController().popBackStack()
         }
-        binding.imgPokemonProfile.load("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${data.id}.png") {
+        binding.imgPokemonProfile.load("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${data.id}.png") {
             binding.progressPokemonProfile.visibility = View.GONE
             crossfade(true)
             crossfade(600)

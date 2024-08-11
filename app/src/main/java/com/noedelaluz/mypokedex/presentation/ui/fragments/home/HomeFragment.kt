@@ -63,12 +63,14 @@ class HomeFragment : Fragment() {
             appviewModel.readPokemon.observeOnce(viewLifecycleOwner) { database ->
 
                 if (database.results.isNotEmpty()) {
+                    hideShimmerEffect()
                     Log.d(TAG, "readDatabase called!")
                     val response = database.results
 
                     // Crear un List<Pokemon> a partir de la lista de PokemonResponse
                     val pokemonList = parseEntityToModelList(response)
                     mAdapter.setData(pokemonList)
+
 
                 } else {
                     if (!dataRequest) {
@@ -87,6 +89,7 @@ class HomeFragment : Fragment() {
         appviewModel.pokemonResponse.observe(viewLifecycleOwner) { response ->
             when (response) {
                 is NetworkResult.Success -> {
+                    this.hideShimmerEffect()
                     response.data?.let { data ->
                         val response = data.results
                         // Crear un List<Pokemon> a partir de la lista de PokemonResponse
@@ -94,11 +97,13 @@ class HomeFragment : Fragment() {
                         mAdapter.setData(pokemonList) }
                 }
                 is NetworkResult.Error -> {
+                    this.hideShimmerEffect()
                     loadDataFromCache()
                     Toast.makeText(requireContext(), response.message, Toast.LENGTH_SHORT).show()
 
                 }
                 is NetworkResult.Loading -> {
+                    showShimmerEffect()
                     Toast.makeText(requireContext(), "Loading...", Toast.LENGTH_SHORT).show()
                 }
             }
@@ -138,6 +143,17 @@ class HomeFragment : Fragment() {
         binding.pokemonRecyclerview.layoutManager = GridLayoutManager(requireContext(), 2)
     }
 
+    private fun showShimmerEffect() {
+        binding.shimmer.visibility = View.VISIBLE
+        binding.shimmer.startShimmer()
+        binding.pokemonRecyclerview.visibility = View.GONE
+    }
+
+    private fun hideShimmerEffect() {
+        binding.shimmer.stopShimmer()
+        binding.shimmer.visibility = View.GONE
+        binding.pokemonRecyclerview.visibility = View.VISIBLE
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()
