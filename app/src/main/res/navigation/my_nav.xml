@@ -18,7 +18,11 @@
         android:id="@+id/favoriteFragment"
         android:name="com.noedelaluz.mypokedex.presentation.ui.fragments.favorite.FavoriteFragment"
         android:label="Favorites"
-        tools:layout="@layout/fragment_favorite" />
+        tools:layout="@layout/fragment_favorite" >
+        <action
+            android:id="@+id/action_favoriteFragment_to_detailFragment"
+            app:destination="@id/detailFragment" />
+    </fragment>
     <fragment
         android:id="@+id/detailFragment"
         android:name="com.noedelaluz.mypokedex.presentation.ui.fragments.datails.DetailFragment"

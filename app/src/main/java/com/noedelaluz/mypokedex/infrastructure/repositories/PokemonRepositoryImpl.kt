@@ -26,11 +26,6 @@ class PokemonRepositoryImpl(
         return this.local.savePokemon(pokemonList)
     }
 
-    override suspend fun savePokemonDetail(): Boolean {
-        TODO("Not yet implemented")
-        return false
-    }
-
     override suspend fun isFavoritePokemon(name: String): PokemonEntity? {
         return this.local.getFavoritePokemon(name)
     }
@@ -43,5 +38,11 @@ class PokemonRepositoryImpl(
         val pokemonList: Flow<PokemonListResponse> = this.local.getPokemon()
 
         return pokemonList
+    }
+
+    override fun getFavoritePokemonList(): Flow<PokemonListResponse> {
+        val favoritePokemonList: Flow<PokemonListResponse> = this.local.getAllFavoritePokemon()
+
+        return favoritePokemonList
     }
 }

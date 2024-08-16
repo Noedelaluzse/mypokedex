@@ -21,4 +21,8 @@ interface PokemonDao {
     @Query("UPDATE pokemon_table SET isFavorite = :isFavorite WHERE name = :name")
     fun updateFavoritePokemon(name: String, isFavorite: Int): Int
 
+    @Query("SELECT * FROM pokemon_table WHERE isFavorite = 1")
+    fun getAllFavoritePokemon(): Flow<List<PokemonEntity>>
+
+
 }

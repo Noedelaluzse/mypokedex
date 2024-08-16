@@ -11,8 +11,9 @@ abstract class PokemonRepository {
     abstract suspend fun getPokemonById(id: String): PokemonDetail
 
     abstract suspend fun savePokemon(pokemonList: List<PokemonResponse>): Boolean
-    abstract suspend fun savePokemonDetail(): Boolean
+
     abstract suspend fun isFavoritePokemon(name: String): PokemonEntity?
     abstract suspend fun saveFavoritePokemon(name: String, isFavorite: Int): Int
     abstract fun getPokemonList(): Flow<PokemonListResponse>
+    abstract fun getFavoritePokemonList(): Flow<PokemonListResponse>
 }

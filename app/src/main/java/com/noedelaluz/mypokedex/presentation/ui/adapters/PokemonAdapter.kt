@@ -12,11 +12,13 @@ import coil.load
 import com.noedelaluz.mypokedex.R
 import com.noedelaluz.mypokedex.domain.models.Pokemon
 import com.noedelaluz.mypokedex.infrastructure.utils.PokemonDiffUtil
+import com.noedelaluz.mypokedex.presentation.ui.fragments.favorite.FavoriteFragmentDirections
 import com.noedelaluz.mypokedex.presentation.ui.fragments.home.HomeFragmentDirections
 
 class PokemonAdapter(): RecyclerView.Adapter<PokemonAdapter.MyViewHolder>() {
 
     private var dataset: List<Pokemon> = emptyList()
+    private var tag: String = ""
 
     class MyViewHolder(val view: View): RecyclerView.ViewHolder(view) {
         val name: TextView = view.findViewById(R.id.pokemon_name)
@@ -43,16 +45,24 @@ class PokemonAdapter(): RecyclerView.Adapter<PokemonAdapter.MyViewHolder>() {
             error(R.drawable.ic_error_placeholder)
         }
 
-        val action  = HomeFragmentDirections.actionHomeFragmentToDetailFragment(item.name)
+        var action: Any
+
+        if (tag == "HomeFragment") {
+            action = HomeFragmentDirections.actionHomeFragmentToDetailFragment(item.name)
+        } else {
+            action = FavoriteFragmentDirections.actionFavoriteFragmentToDetailFragment(item.name)
+        }
+
         holder.itemView.setOnClickListener {
             holder.itemView.findNavController().navigate(action)
         }
     }
 
-    fun setData(newData: List<Pokemon>) {
+    fun setData(newData: List<Pokemon>, tag: String = "HomeFragment") {
         val pokemonDiffUtil = PokemonDiffUtil(dataset, newData)
         val diffUtilResult = DiffUtil.calculateDiff(pokemonDiffUtil)
         dataset = newData
+        this.tag = tag
         diffUtilResult.dispatchUpdatesTo(this)
         //notifyDataSetChanged()
     }

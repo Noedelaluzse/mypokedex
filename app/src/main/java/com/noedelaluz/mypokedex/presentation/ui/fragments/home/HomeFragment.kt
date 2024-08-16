@@ -46,12 +46,18 @@ class HomeFragment : Fragment() {
 
         setupRecyclerView()
 
+        appviewModel.readBackOnline.observe(viewLifecycleOwner) {
+            appviewModel.backOnline = it
+        }
+
         // TODO: Implement network listener to check network availability and use local data if network is not available
-        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
+        lifecycleScope.launchWhenStarted {
             networkListener = NetworkListener()
             networkListener.checkNetworkAvailability(requireContext()).collect {
                 status ->
                 Log.d("NetworkListener", status.toString())
+                appviewModel.networkStatus = status
+                appviewModel.showNetworkStatus()
                 readDatabase()
             }
         }
@@ -69,8 +75,7 @@ class HomeFragment : Fragment() {
 
                     // Crear un List<Pokemon> a partir de la lista de PokemonResponse
                     val pokemonList = parseEntityToModelList(response)
-                    mAdapter.setData(pokemonList)
-
+                    mAdapter.setData(pokemonList, TAG)
 
                 } else {
                     if (!dataRequest) {
@@ -94,7 +99,7 @@ class HomeFragment : Fragment() {
                         val response = data.results
                         // Crear un List<Pokemon> a partir de la lista de PokemonResponse
                         val pokemonList = parseEntityToModelList(response)
-                        mAdapter.setData(pokemonList) }
+                        mAdapter.setData(pokemonList, TAG) }
                 }
                 is NetworkResult.Error -> {
                     this.hideShimmerEffect()
@@ -104,7 +109,6 @@ class HomeFragment : Fragment() {
                 }
                 is NetworkResult.Loading -> {
                     showShimmerEffect()
-                    Toast.makeText(requireContext(), "Loading...", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -114,9 +118,15 @@ class HomeFragment : Fragment() {
         lifecycleScope.launch {
             appviewModel.readPokemon.observe(viewLifecycleOwner) { database ->
                 if (database.results.isNotEmpty()) {
+                    binding.emptyDatabaseImageView.visibility = View.GONE
+                    binding.emptyDatabaseTextView.visibility = View.GONE
                     val responseList = database.results
                     val pokemonList = parseEntityToModelList(responseList)
-                    mAdapter.setData(pokemonList)
+                    mAdapter.setData(pokemonList, TAG)
+                } else {
+                    Log.d(TAG, "loadDataFromCache: Database is empty!")
+                    binding.emptyDatabaseImageView.visibility = View.VISIBLE
+                    binding.emptyDatabaseTextView.visibility = View.VISIBLE
                 }
             }
         }

@@ -14,6 +14,7 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.GridLayoutManager
 import coil.load
 import com.google.android.material.chip.Chip
+import com.google.android.material.snackbar.Snackbar
 import com.noedelaluz.mypokedex.R
 import com.noedelaluz.mypokedex.databinding.FragmentDetailBinding
 import com.noedelaluz.mypokedex.domain.models.PokemonDetail
@@ -52,6 +53,18 @@ class DetailFragment : Fragment() {
     ): View {
         _binding = FragmentDetailBinding.inflate(inflater, container, false)
 
+        appviewModel.readBackOnline.observe(viewLifecycleOwner) { online ->
+            if (online) {
+                binding.scrollView2.visibility = View.VISIBLE
+                binding.emptyDatabaseTextView.visibility = View.GONE
+                binding.emptyDatabaseImageView.visibility = View.GONE
+            } else {
+                binding.scrollView2.visibility = View.GONE
+                binding.emptyDatabaseTextView.visibility = View.VISIBLE
+                binding.emptyDatabaseImageView.visibility = View.VISIBLE
+            }
+        }
+
         checkSavedPokemon()
 
         binding.likeButton.setOnClickListener {
@@ -59,10 +72,12 @@ class DetailFragment : Fragment() {
                 appviewModel.saveFavoritePokemon(args.pokemonName, 0)
                 binding.likeButton.setImageResource(R.drawable.ic_dislike)
                 pokemonSaved = false
+                this.showSnackBar(getString(R.string.pokemon_eliminado_de_favoritos))
             } else {
                 appviewModel.saveFavoritePokemon(args.pokemonName, 1)
                 binding.likeButton.setImageResource(R.drawable.ic_favorite)
                 pokemonSaved = true
+                this.showSnackBar(getString(R.string.pokemon_guardado_en_favoritos))
             }
         }
 
@@ -72,9 +87,19 @@ class DetailFragment : Fragment() {
             networkListener = NetworkListener()
             networkListener.checkNetworkAvailability(requireContext()).collect {
                 status ->
-                Log.d("NetworkListener", status.toString())
-                appviewModel.isFavoritePokemon(args.pokemonName)
-                requestApiData()
+                if (status) {
+                    binding.scrollView2.visibility = View.VISIBLE
+                    binding.emptyDatabaseTextView.visibility = View.GONE
+                    binding.emptyDatabaseImageView.visibility = View.GONE
+                    appviewModel.isFavoritePokemon(args.pokemonName)
+                    requestApiData()
+                } else {
+                    binding.scrollView2.visibility = View.GONE
+                    binding.emptyDatabaseTextView.visibility = View.VISIBLE
+                    binding.emptyDatabaseImageView.visibility = View.VISIBLE
+                    showSnackBar("No hay conexión a internet")
+                }
+
             }
         }
         return binding.root
@@ -131,8 +156,8 @@ class DetailFragment : Fragment() {
 
         binding.idPokemon.text = "#${String.format("%03d", data.id)}"
         binding.titlePokemonName.text = data.name.replaceFirstChar { it.uppercase() }
-        binding.weightValue.text = "${data.weight}kg"
-        binding.heightValue.text = "${data.height}mts"
+        binding.weightValue.text = "${data.weight/10 }kg"
+        binding.heightValue.text = String.format("%.1f mts", data.height / 10.0)
 
         abilitiesAdapter.setData(data.abilities)
         spritesAdapter.setData(data.sprites)
@@ -246,6 +271,14 @@ class DetailFragment : Fragment() {
             binding.titlePokemonName.text = param.pokemonName
         }
 
+    }
+
+    private fun showSnackBar(message: String) {
+        Snackbar.make(
+            binding.root,
+            message,
+            Snackbar.LENGTH_SHORT
+        ).setAction(getString(R.string.okey)){}.show()
     }
 
     override fun onDestroyView() {

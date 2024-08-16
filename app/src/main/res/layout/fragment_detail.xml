@@ -38,8 +38,7 @@
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/container_pokemon_profile"
                 android:layout_width="match_parent"
-                android:layout_height="250dp"
-                android:background="#E34F4F">
+                android:layout_height="250dp">
 
                 <ImageView
                     android:id="@+id/imageView"
@@ -70,6 +69,7 @@
                     android:layout_marginTop="42dp"
                     android:layout_marginEnd="32dp"
                     android:src="@drawable/ic_dislike"
+                    android:contentDescription="@string/bot_n_de_favoritos"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -92,6 +92,7 @@
                     android:layout_width="150dp"
                     android:layout_height="150dp"
                     android:layout_marginTop="16dp"
+                    android:contentDescription="@string/foto_del_pokemon"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/id_pokemon"
@@ -112,6 +113,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:src="@drawable/ic_arrow_back"
+                        android:contentDescription="@string/bot_n_de_regreso"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
@@ -124,12 +126,12 @@
                 android:id="@+id/title_pokemon_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Pikachu"
                 android:textAlignment="center"
                 android:textColor="@color/black"
                 android:textSize="26sp"
                 android:textStyle="bold"
-                android:visibility="visible" />
+                android:visibility="visible"
+                tools:text="Pikachu" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -139,12 +141,12 @@
                 android:gravity="center"
                 android:orientation="horizontal"
                 android:visibility="visible"
-                tools:visibility="invisible">
+                tools:visibility="visible">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Weight:"
+                    android:text="@string/weight"
                     android:textStyle="bold" />
 
                 <TextView
@@ -152,13 +154,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
-                    android:text="32kg" />
+                    tools:text="32kg" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="42dp"
-                    android:text="Height:"
+                    android:text="@string/height"
                     android:textStyle="bold" />
 
                 <TextView
@@ -166,7 +168,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="18dp"
-                    android:text="32ft" />
+                    tools:text="10ft" />
 
             </LinearLayout>
 
@@ -176,7 +178,7 @@
                 android:gravity="center"
                 android:orientation="horizontal"
                 android:visibility="visible"
-                tools:visibility="invisible">
+                tools:visibility="visible">
 
                 <com.google.android.material.chip.ChipGroup
                     android:id="@+id/chipGroupType"
@@ -192,7 +194,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="2dp"
-                android:text="Stats"
+                android:text="@string/stats"
                 android:textAlignment="center"
                 android:textColor="@color/black"
                 android:textSize="20sp"
@@ -204,7 +206,7 @@
                 android:layout_height="match_parent"
                 android:gravity="center"
                 android:orientation="vertical"
-                tools:visibility="invisible">
+                tools:visibility="visible">
 
                 <LinearLayout
                     android:id="@+id/container_stats"
@@ -223,7 +225,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="HP"
+                            android:text="@string/hp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -233,7 +235,7 @@
                             android:layout_marginStart="20dp"
                             android:layout_weight="1"
                             android:padding="2dp"
-                            android:text="000" />
+                            tools:text="000" />
 
                         <ProgressBar
                             android:id="@+id/hp_progress"
@@ -260,7 +262,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="ATK"
+                            android:text="@string/atk"
                             android:textStyle="bold" />
 
                         <TextView
@@ -270,7 +272,7 @@
                             android:layout_marginStart="14dp"
                             android:layout_weight="1"
                             android:padding="2dp"
-                            android:text="000" />
+                            tools:text="000" />
 
                         <ProgressBar
                             android:id="@+id/atk_progress"
@@ -293,7 +295,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="DEF"
+                            android:text="@string/def"
                             android:textStyle="bold" />
 
                         <TextView
@@ -303,7 +305,7 @@
                             android:layout_marginStart="16dp"
                             android:layout_weight="1"
                             android:padding="2dp"
-                            android:text="000" />
+                            tools:text="000" />
 
                         <ProgressBar
                             android:id="@+id/def_progress"
@@ -331,7 +333,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="SATK"
+                            android:text="@string/satk"
                             android:textStyle="bold" />
 
                         <TextView
@@ -341,7 +343,7 @@
                             android:layout_marginStart="6dp"
                             android:layout_weight="1"
                             android:padding="2dp"
-                            android:text="000" />
+                            tools:text="000" />
 
                         <ProgressBar
                             android:id="@+id/satk_progress"
@@ -367,7 +369,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="SDEF"
+                            android:text="@string/sdef"
                             android:textStyle="bold" />
 
                         <TextView
@@ -377,7 +379,7 @@
                             android:layout_marginStart="8dp"
                             android:layout_weight="1"
                             android:padding="2dp"
-                            android:text="000" />
+                            tools:text="000" />
 
                         <ProgressBar
                             android:id="@+id/sdef_progress"
@@ -403,7 +405,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="SPD"
+                            android:text="@string/spd"
                             android:textStyle="bold" />
 
                         <TextView
@@ -413,7 +415,7 @@
                             android:layout_marginStart="15dp"
                             android:layout_weight="1"
                             android:padding="2dp"
-                            android:text="000" />
+                            tools:text="000" />
 
                         <ProgressBar
                             android:id="@+id/spd_progress"
@@ -435,7 +437,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="Abilities"
+                android:text="@string/abilities"
                 android:textAlignment="center"
                 android:textColor="@color/black"
                 android:textSize="24sp"
@@ -465,7 +467,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="2dp"
-                android:text="Sprites"
+                android:text="@string/sprites"
                 android:textAlignment="center"
                 android:textColor="@color/black"
                 android:textSize="24sp"
@@ -484,9 +486,10 @@
                     android:layout_width="360dp"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="10dp"
+                    android:contentDescription="@string/recycler_sprites"
                     app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-                    app:spanCount="6"
-                    tools:itemCount="6"
+                    app:spanCount="4"
+                    tools:itemCount="4"
                     tools:listitem="@layout/sprite_card" />
             </LinearLayout>
 
@@ -494,4 +497,32 @@
         </LinearLayout>
 
     </ScrollView>
+
+    <ImageView
+        android:id="@+id/emptyDatabaseImageView"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:alpha="0.5"
+        android:src="@drawable/ic_empty"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.37"
+        android:visibility="gone"
+        />
+
+    <TextView
+        android:id="@+id/emptyDatabaseTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:alpha="0.5"
+        android:text="Sin conexión a internet"
+        android:textSize="18sp"
+        android:visibility="gone"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="@+id/emptyDatabaseImageView"
+        app:layout_constraintStart_toStartOf="@+id/emptyDatabaseImageView"
+        app:layout_constraintTop_toBottomOf="@+id/emptyDatabaseImageView" />
 </androidx.constraintlayout.widget.ConstraintLayout>

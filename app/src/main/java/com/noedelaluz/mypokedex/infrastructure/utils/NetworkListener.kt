@@ -2,6 +2,7 @@ package com.noedelaluz.mypokedex.infrastructure.utils
 
 import android.content.Context
 import android.net.ConnectivityManager
+import android.net.Network
 import android.net.NetworkCapabilities
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -43,5 +44,12 @@ class NetworkListener: ConnectivityManager.NetworkCallback() {
                 isNetworkAvailable
             }
         }
+    }
+    override fun onAvailable(network: Network) {
+        isNetworkAvailable.value = true
+    }
+
+    override fun onLost(network: Network) {
+        isNetworkAvailable.value = false
     }
 }

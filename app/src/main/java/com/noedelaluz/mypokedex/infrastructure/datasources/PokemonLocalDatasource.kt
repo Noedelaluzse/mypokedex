@@ -50,5 +50,17 @@ class PokemonLocalDatasource( applicationContext: Context) {
         return true
     }
 
+    fun getAllFavoritePokemon(): Flow<PokemonListResponse> {
+        return db.pokemonDao().getAllFavoritePokemon().map { pokemonList ->
+            val pokemonResponseList = pokemonList.map { pokemonEntity ->
+                PokemonResponse(
+                    name = pokemonEntity.name,
+                    url = pokemonEntity.url
+                )
+            }
+            PokemonListResponse(results = pokemonResponseList)
+        }
+    }
+
 
 }

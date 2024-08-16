@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -13,12 +14,14 @@ import com.noedelaluz.mypokedex.data.database.entities.PokemonEntity
 import com.noedelaluz.mypokedex.domain.models.PokemonDetail
 import com.noedelaluz.mypokedex.domain.models.PokemonListResponse
 import com.noedelaluz.mypokedex.domain.models.PokemonResponse
+import com.noedelaluz.mypokedex.domain.usecase.pokemon.GetAllFavoritePokemon
 import com.noedelaluz.mypokedex.domain.usecase.pokemon.GetAllPokemon
 import com.noedelaluz.mypokedex.domain.usecase.pokemon.GetPokemonDetails
 import com.noedelaluz.mypokedex.domain.usecase.pokemon.GetPokemonFromCache
 import com.noedelaluz.mypokedex.domain.usecase.pokemon.IsFavoritePokemon
 import com.noedelaluz.mypokedex.domain.usecase.pokemon.SaveFavoritePokemon
 import com.noedelaluz.mypokedex.domain.usecase.pokemon.SavePokemonDB
+import com.noedelaluz.mypokedex.infrastructure.datasources.DataStoreRepository
 import com.noedelaluz.mypokedex.infrastructure.datasources.PokemonDatasourceImpl
 import com.noedelaluz.mypokedex.infrastructure.datasources.PokemonLocalDatasource
 import com.noedelaluz.mypokedex.infrastructure.repositories.PokemonRepositoryImpl
@@ -32,6 +35,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val localDatasource = PokemonLocalDatasource(application)
 
     private val repository = PokemonRepositoryImpl(remoteDatasource, localDatasource)
+    private val dataStoreRepository = DataStoreRepository(application)
+
+    // Variables de apoyo
+    var networkStatus = false
+    var backOnline = false
 
     // Use Cases Remote
     private val getPokemonListUseCase = GetAllPokemon(repository)
@@ -42,14 +50,19 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val getPokemonFromCache = GetPokemonFromCache(repository)
     private val isFavoritePokemon = IsFavoritePokemon(repository)
     private val updateFavoritePokemon = SaveFavoritePokemon(repository)
+    private val getAllFavoritePokemon = GetAllFavoritePokemon(repository)
+
 
     /*** ROOM DATABASE **/
     val readPokemon: LiveData<PokemonListResponse> = getPokemonFromCache.execute().asLiveData()
+    val readFavoritePokemon: LiveData<PokemonListResponse> = getAllFavoritePokemon.execute().asLiveData()
     var favoritePokemon: MutableLiveData<PokemonEntity?> = MutableLiveData()
     /** RETROFIT **/
     var pokemonResponse: MutableLiveData<NetworkResult<PokemonListResponse>> = MutableLiveData()
     var pokemonDetailReponse: MutableLiveData<NetworkResult<PokemonDetail>> = MutableLiveData()
 
+    /** INTERNET **/
+    val readBackOnline = dataStoreRepository.readBackOnline.asLiveData()
 
     fun getPokemonList() = viewModelScope.launch {
         getPokemonListSafeCall()
@@ -63,9 +76,24 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         favoritePokemon.postValue(isFavoritePokemon.execute(name))
     }
 
-
     fun saveFavoritePokemon(name: String, isFavorite: Int) = viewModelScope.launch {
         updatePokemon(name, isFavorite)
+    }
+
+    fun saveBackOnline(backOnline: Boolean) = viewModelScope.launch(Dispatchers.IO) {
+        dataStoreRepository.saveBackOnline(backOnline)
+    }
+
+    fun showNetworkStatus() {
+        if (!networkStatus) {
+            Toast.makeText(getApplication(), "No Internet Connection.", Toast.LENGTH_SHORT).show()
+            saveBackOnline(true)
+        } else if (networkStatus) {
+            if (backOnline) {
+                Toast.makeText(getApplication(), "We're back online.", Toast.LENGTH_SHORT).show()
+                saveBackOnline(false)
+            }
+        }
     }
 
     private fun updatePokemon(name: String, isFavorite: Int) = viewModelScope.launch(Dispatchers.IO) {
@@ -101,6 +129,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             } catch (e: Exception) {
                 pokemonResponse.value = NetworkResult.Error("Pokemon not found.")
             }
+        } else {
+            pokemonResponse.value = NetworkResult.Error("No Internet Connection.")
         }
     }
 
@@ -111,21 +141,18 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun hasInternetConnection(): Boolean {
-
         val connectivityManager = getApplication<Application>().getSystemService(
             Context.CONNECTIVITY_SERVICE
         ) as ConnectivityManager
 
         val activeNetwork = connectivityManager.activeNetwork ?: return false
         val capabilities = connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
-
         return when {
             capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
             capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
             capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
             else -> false
         }
-
     }
 
 }
