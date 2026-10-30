@@ -10,7 +10,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.noedelaluz.mypokedex.R
 import com.noedelaluz.mypokedex.databinding.FragmentFavoriteBinding
 import com.noedelaluz.mypokedex.di.appContainer
 import com.noedelaluz.mypokedex.domain.models.Pokemon
@@ -24,7 +25,10 @@ class FavoriteFragment : Fragment() {
 
     private val viewModel: FavoriteViewModel by viewModels { appContainer().favoriteViewModelFactory }
 
-    private val favoriteAdapter = PokemonAdapter(onPokemonClick = ::openDetail)
+    private val favoriteAdapter = PokemonAdapter(
+        layoutRes = R.layout.favorite_row_layout,
+        onPokemonClick = ::openDetail,
+    )
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -37,7 +41,7 @@ class FavoriteFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.favoriteRecipesRecyclerView.adapter = favoriteAdapter
-        binding.favoriteRecipesRecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
+        binding.favoriteRecipesRecyclerView.layoutManager = LinearLayoutManager(requireContext())
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
