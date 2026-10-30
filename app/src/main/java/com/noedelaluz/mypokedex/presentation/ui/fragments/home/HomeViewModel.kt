@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.noedelaluz.mypokedex.R
 import com.noedelaluz.mypokedex.domain.connectivity.ConnectivityObserver
+import com.noedelaluz.mypokedex.domain.models.Pokemon
 import com.noedelaluz.mypokedex.domain.usecase.pokemon.GetPokemonList
 import com.noedelaluz.mypokedex.domain.usecase.pokemon.RefreshPokemonList
 import kotlinx.coroutines.Job
@@ -25,15 +26,26 @@ class HomeViewModel(
     private val isRefreshing = MutableStateFlow(true)
     private var refreshJob: Job? = null
 
+    private val searchQuery = MutableStateFlow("")
+    private val _selectedType = MutableStateFlow<String?>(null)
+
+    /** Tipo seleccionado en los filtros; null = todos. */
+    val selectedType: StateFlow<String?> = _selectedType
+
     private val messageChannel = Channel<Int>(Channel.BUFFERED)
 
     /** Mensajes de un solo uso (id de string) que la vista muestra como Toast. */
     val messages = messageChannel.receiveAsFlow()
 
     // Room es la fuente de verdad; la red solo la actualiza.
-    val uiState: StateFlow<HomeUiState> = combine(getPokemonList(), isRefreshing) { pokemon, refreshing ->
+    val uiState: StateFlow<HomeUiState> = combine(
+        getPokemonList(),
+        isRefreshing,
+        searchQuery,
+        _selectedType,
+    ) { pokemon, refreshing, query, type ->
         when {
-            pokemon.isNotEmpty() -> HomeUiState.Success(pokemon)
+            pokemon.isNotEmpty() -> HomeUiState.Success(pokemon.filter { it.matches(query, type) })
             refreshing -> HomeUiState.Loading
             else -> HomeUiState.Error
         }
@@ -42,6 +54,14 @@ class HomeViewModel(
     init {
         observeConnectivity(connectivityObserver)
         refresh()
+    }
+
+    fun onSearchQueryChange(query: String) {
+        searchQuery.value = query
+    }
+
+    fun onTypeSelected(type: String?) {
+        _selectedType.value = type
     }
 
     fun refresh() {
@@ -67,6 +87,15 @@ class HomeViewModel(
                 }
             }
         }
+    }
+
+    private fun Pokemon.matches(query: String, type: String?): Boolean {
+        val normalizedQuery = query.trim().removePrefix("#")
+        val matchesQuery = normalizedQuery.isEmpty() ||
+            name.contains(normalizedQuery, ignoreCase = true) ||
+            id.toString() == normalizedQuery
+        val matchesType = type == null || type in types
+        return matchesQuery && matchesType
     }
 
     private companion object {

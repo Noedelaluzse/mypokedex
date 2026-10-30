@@ -22,6 +22,15 @@ data class PokemonDetailDto(
     @SerializedName("sprites") val sprites: SpritesDto,
 )
 
+data class TypeDto(
+    @SerializedName("pokemon") val pokemon: List<TypePokemonSlotDto>,
+)
+
+data class TypePokemonSlotDto(
+    @SerializedName("slot") val slot: Int,
+    @SerializedName("pokemon") val pokemon: NamedResourceDto,
+)
+
 data class NamedResourceDto(
     @SerializedName("name") val name: String,
 )

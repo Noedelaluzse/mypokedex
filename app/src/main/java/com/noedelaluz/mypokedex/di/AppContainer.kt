@@ -9,6 +9,7 @@ import com.noedelaluz.mypokedex.MyApplication
 import com.noedelaluz.mypokedex.config.Constants.DATABASE_NAME
 import com.noedelaluz.mypokedex.config.NetworkModule
 import com.noedelaluz.mypokedex.data.connectivity.NetworkConnectivityObserver
+import com.noedelaluz.mypokedex.data.database.MIGRATION_1_2
 import com.noedelaluz.mypokedex.data.database.PokemonDatabase
 import com.noedelaluz.mypokedex.data.datasources.PokemonLocalDataSourceImpl
 import com.noedelaluz.mypokedex.data.datasources.PokemonRemoteDataSourceImpl
@@ -35,7 +36,9 @@ class AppContainer(context: Context) {
 
     // Data
     private val database: PokemonDatabase by lazy {
-        Room.databaseBuilder(appContext, PokemonDatabase::class.java, DATABASE_NAME).build()
+        Room.databaseBuilder(appContext, PokemonDatabase::class.java, DATABASE_NAME)
+            .addMigrations(MIGRATION_1_2)
+            .build()
     }
 
     private val repository: PokemonRepository by lazy {
