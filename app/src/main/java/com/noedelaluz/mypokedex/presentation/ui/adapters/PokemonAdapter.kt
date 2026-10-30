@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.annotation.LayoutRes
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -13,6 +14,7 @@ import com.noedelaluz.mypokedex.R
 import com.noedelaluz.mypokedex.domain.models.Pokemon
 
 class PokemonAdapter(
+    @LayoutRes private val layoutRes: Int = R.layout.pokemon_row_layout,
     private val onPokemonClick: (Pokemon) -> Unit,
 ) : ListAdapter<Pokemon, PokemonAdapter.MyViewHolder>(PokemonDiffCallback) {
 
@@ -23,7 +25,7 @@ class PokemonAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.pokemon_row_layout, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(layoutRes, parent, false)
         return MyViewHolder(view)
     }
 
