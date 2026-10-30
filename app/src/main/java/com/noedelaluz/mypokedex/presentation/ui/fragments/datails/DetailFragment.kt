@@ -24,6 +24,7 @@ import com.noedelaluz.mypokedex.databinding.FragmentDetailBinding
 import com.noedelaluz.mypokedex.domain.models.PokemonDetail
 import com.noedelaluz.mypokedex.presentation.ui.adapters.AbilitiesAdapter
 import com.noedelaluz.mypokedex.presentation.ui.adapters.SpriteAdapter
+import com.noedelaluz.mypokedex.presentation.ui.util.typeColorRes
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -152,7 +153,7 @@ class DetailFragment : Fragment() {
         binding.chipGroupType.removeAllViews()
 
         types.forEachIndexed { index, typeName ->
-            val colorResId = TYPE_COLORS[typeName] ?: R.color.type_normal
+            val colorResId = typeColorRes(typeName)
 
             // El primer tipo define el color de fondo del contenedor
             if (index == 0) {
@@ -181,28 +182,5 @@ class DetailFragment : Fragment() {
         binding.recyclerAbilities.adapter = null
         binding.recyclerSprites.adapter = null
         _binding = null
-    }
-
-    private companion object {
-        val TYPE_COLORS = mapOf(
-            "normal" to R.color.type_normal,
-            "fire" to R.color.type_fire,
-            "water" to R.color.type_water,
-            "electric" to R.color.type_electric,
-            "grass" to R.color.type_grass,
-            "ice" to R.color.type_ice,
-            "fighting" to R.color.type_fighting,
-            "poison" to R.color.type_poison,
-            "ground" to R.color.type_ground,
-            "flying" to R.color.type_flying,
-            "psychic" to R.color.type_psychic,
-            "bug" to R.color.type_bug,
-            "rock" to R.color.type_rock,
-            "ghost" to R.color.type_ghost,
-            "dragon" to R.color.type_dragon,
-            "dark" to R.color.type_dark,
-            "steel" to R.color.type_steel,
-            "fairy" to R.color.type_fairy,
-        )
     }
 }

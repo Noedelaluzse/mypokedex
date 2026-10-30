@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.noedelaluz.mypokedex.config.Constants.DATABASE_NAME
 import com.noedelaluz.mypokedex.config.NetworkModule
+import com.noedelaluz.mypokedex.data.database.MIGRATION_1_2
 import com.noedelaluz.mypokedex.data.database.PokemonDatabase
 import com.noedelaluz.mypokedex.data.network.PokeApi
 import dagger.Module
@@ -25,5 +26,7 @@ object DataModule {
     @Provides
     @Singleton
     fun providePokemonDatabase(@ApplicationContext context: Context): PokemonDatabase =
-        Room.databaseBuilder(context, PokemonDatabase::class.java, DATABASE_NAME).build()
+        Room.databaseBuilder(context, PokemonDatabase::class.java, DATABASE_NAME)
+            .addMigrations(MIGRATION_1_2)
+            .build()
 }

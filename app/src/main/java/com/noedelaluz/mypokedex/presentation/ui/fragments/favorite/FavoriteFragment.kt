@@ -28,6 +28,7 @@ class FavoriteFragment : Fragment() {
 
     private val favoriteAdapter = PokemonAdapter(
         layoutRes = R.layout.favorite_row_layout,
+        textOverTypeColor = false,
         onPokemonClick = ::openDetail,
     )
 

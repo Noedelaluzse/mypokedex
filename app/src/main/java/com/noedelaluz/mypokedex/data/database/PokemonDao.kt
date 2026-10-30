@@ -21,6 +21,12 @@ interface PokemonDao {
     @Query("SELECT name FROM pokemon_table")
     suspend fun getAllNames(): List<String>
 
+    @Query("SELECT COUNT(*) FROM pokemon_table WHERE types = ''")
+    suspend fun countWithoutTypes(): Int
+
+    @Query("UPDATE pokemon_table SET types = :types WHERE name = :name")
+    suspend fun updateTypes(name: String, types: String)
+
     @Insert
     suspend fun insertAll(pokemon: List<PokemonEntity>)
 

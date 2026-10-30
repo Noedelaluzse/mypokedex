@@ -3,9 +3,12 @@ package com.noedelaluz.mypokedex.data.mappers
 import com.noedelaluz.mypokedex.data.database.entities.PokemonEntity
 import com.noedelaluz.mypokedex.data.network.dto.PokemonDetailDto
 import com.noedelaluz.mypokedex.data.network.dto.PokemonSummaryDto
+import com.noedelaluz.mypokedex.data.network.dto.TypeDto
 import com.noedelaluz.mypokedex.domain.models.Pokemon
 import com.noedelaluz.mypokedex.domain.models.PokemonDetail
 import com.noedelaluz.mypokedex.domain.models.PokemonStat
+
+private const val TYPES_SEPARATOR = ","
 
 private const val SPRITES_BASE_URL =
     "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon"
@@ -19,6 +22,7 @@ fun PokemonEntity.toDomain(): Pokemon {
         name = name,
         picture = "$SPRITES_BASE_URL/$pokedexId.png",
         id = pokedexId,
+        types = types.split(TYPES_SEPARATOR).filter { it.isNotBlank() },
     )
 }
 
@@ -38,6 +42,15 @@ fun PokemonDetailDto.toDomain(): PokemonDetail = PokemonDetail(
         sprites.frontShiny,
     ),
 )
+
+/**
+ * Convierte las respuestas de `type/{nombre}` en nombre del pokemon -> "tipo1,tipo2",
+ * ordenando por slot para que el tipo principal quede primero.
+ */
+fun List<Pair<String, TypeDto>>.toTypesByPokemon(): Map<String, String> =
+    flatMap { (type, dto) -> dto.pokemon.map { Triple(it.pokemon.name, it.slot, type) } }
+        .groupBy({ it.first }, { it.second to it.third })
+        .mapValues { (_, slots) -> slots.sortedBy { it.first }.joinToString(TYPES_SEPARATOR) { it.second } }
 
 // La url tiene la forma https://pokeapi.co/api/v2/pokemon/25/
 private fun String.pokedexId(): Int = trimEnd('/').substringAfterLast('/').toInt()

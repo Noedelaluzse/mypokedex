@@ -28,6 +28,13 @@ class HomeViewModelTest {
     private val connectivity = FakeConnectivityObserver()
     private val pikachu = Pokemon(name = "pikachu", picture = "url", id = 25)
 
+    private val bulbasaur = Pokemon(
+        name = "bulbasaur", picture = "url", id = 1, types = listOf("grass", "poison"),
+    )
+    private val charmander = Pokemon(
+        name = "charmander", picture = "url", id = 4, types = listOf("fire"),
+    )
+
     private fun createViewModel() = HomeViewModel(
         getPokemonList = GetPokemonList(repository),
         refreshPokemonList = RefreshPokemonList(repository),
@@ -63,5 +70,39 @@ class HomeViewModelTest {
 
         assertEquals(listOf(R.string.no_internet_connection, R.string.back_online), messages)
         assertEquals(2, repository.refreshCalls)
+    }
+
+    @Test
+    fun `filtra la lista por nombre`() = runTest {
+        repository.pokemon.value = listOf(pikachu, bulbasaur, charmander)
+        val viewModel = createViewModel()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
+
+        viewModel.onSearchQueryChange("  CHAR ")
+
+        assertEquals(HomeUiState.Success(listOf(charmander)), viewModel.uiState.value)
+    }
+
+    @Test
+    fun `filtra la lista por tipo`() = runTest {
+        repository.pokemon.value = listOf(pikachu, bulbasaur, charmander)
+        val viewModel = createViewModel()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
+
+        viewModel.onTypeSelected("poison")
+
+        assertEquals(HomeUiState.Success(listOf(bulbasaur)), viewModel.uiState.value)
+    }
+
+    @Test
+    fun `combina busqueda y tipo, y sin coincidencias sigue siendo Success vacio`() = runTest {
+        repository.pokemon.value = listOf(pikachu, bulbasaur, charmander)
+        val viewModel = createViewModel()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
+
+        viewModel.onTypeSelected("fire")
+        viewModel.onSearchQueryChange("bulba")
+
+        assertEquals(HomeUiState.Success(emptyList()), viewModel.uiState.value)
     }
 }
