@@ -6,38 +6,28 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.noedelaluz.mypokedex.R
-import com.noedelaluz.mypokedex.domain.models.Ability
 
-class AbilitiesAdapter(): RecyclerView.Adapter<AbilitiesAdapter.MyViewHolder>() {
+class AbilitiesAdapter : RecyclerView.Adapter<AbilitiesAdapter.MyViewHolder>() {
 
-    private var arrAbilities: List<Ability> = emptyList()
+    private var abilities: List<String> = emptyList()
 
-    class MyViewHolder(view: View): RecyclerView.ViewHolder(view) {
-        val abilityName = view.findViewById<TextView>(R.id.abilityName)
+    class MyViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val abilityName: TextView = view.findViewById(R.id.abilityName)
     }
 
-
-    override fun onCreateViewHolder(
-        parent: ViewGroup,
-        viewType: Int
-    ): AbilitiesAdapter.MyViewHolder {
-        val adapterLayout = LayoutInflater.from(parent.context).inflate(R.layout.ability_card, parent, false)
-        return MyViewHolder(adapterLayout)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.ability_card, parent, false)
+        return MyViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: AbilitiesAdapter.MyViewHolder, position: Int) {
-        val item = arrAbilities[position]
-
-        holder.abilityName.apply {
-            text = item.ability.name.replaceFirstChar { it.uppercase() }
-        }
+    override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
+        holder.abilityName.text = abilities[position].replaceFirstChar { it.uppercase() }
     }
 
-    override fun getItemCount(): Int = arrAbilities.size
+    override fun getItemCount(): Int = abilities.size
 
-    fun setData(newData: List<Ability>) {
-        arrAbilities = newData
+    fun setData(newData: List<String>) {
+        abilities = newData
         notifyDataSetChanged()
     }
-
 }

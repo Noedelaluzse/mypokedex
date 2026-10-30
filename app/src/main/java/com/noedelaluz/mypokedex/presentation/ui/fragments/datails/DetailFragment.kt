@@ -1,14 +1,18 @@
 package com.noedelaluz.mypokedex.presentation.ui.fragments.datails
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ProgressBar
+import android.widget.TextView
+import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.GridLayoutManager
@@ -17,191 +21,171 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
 import com.noedelaluz.mypokedex.R
 import com.noedelaluz.mypokedex.databinding.FragmentDetailBinding
+import com.noedelaluz.mypokedex.di.appContainer
 import com.noedelaluz.mypokedex.domain.models.PokemonDetail
-import com.noedelaluz.mypokedex.infrastructure.utils.NetworkListener
-import com.noedelaluz.mypokedex.infrastructure.utils.NetworkResult
-import com.noedelaluz.mypokedex.infrastructure.utils.observeOnce
 import com.noedelaluz.mypokedex.presentation.ui.adapters.AbilitiesAdapter
 import com.noedelaluz.mypokedex.presentation.ui.adapters.SpriteAdapter
-import com.noedelaluz.mypokedex.presentation.viewmodels.AppViewModel
 import kotlinx.coroutines.launch
-
 
 class DetailFragment : Fragment() {
 
     private var _binding: FragmentDetailBinding? = null
     private val binding get() = _binding!!
-    private val TAG = "DetailFragment"
-    private lateinit var appviewModel: AppViewModel
-
-    private val abilitiesAdapter by lazy { AbilitiesAdapter() }
-    private val spritesAdapter by lazy { SpriteAdapter() }
-
-    private lateinit var networkListener: NetworkListener
 
     private val args: DetailFragmentArgs by navArgs()
 
-    private var pokemonSaved = false
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        appviewModel = ViewModelProvider(requireActivity())[AppViewModel::class.java]
+    private val viewModel: DetailViewModel by viewModels {
+        appContainer().detailViewModelFactory(args.pokemonName)
     }
+
+    private val abilitiesAdapter = AbilitiesAdapter()
+    private val spritesAdapter = SpriteAdapter()
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentDetailBinding.inflate(inflater, container, false)
-
-        appviewModel.readBackOnline.observe(viewLifecycleOwner) { online ->
-            if (online) {
-                binding.scrollView2.visibility = View.VISIBLE
-                binding.emptyDatabaseTextView.visibility = View.GONE
-                binding.emptyDatabaseImageView.visibility = View.GONE
-            } else {
-                binding.scrollView2.visibility = View.GONE
-                binding.emptyDatabaseTextView.visibility = View.VISIBLE
-                binding.emptyDatabaseImageView.visibility = View.VISIBLE
-            }
-        }
-
-        checkSavedPokemon()
-
-        binding.likeButton.setOnClickListener {
-            if (pokemonSaved) {
-                appviewModel.saveFavoritePokemon(args.pokemonName, 0)
-                binding.likeButton.setImageResource(R.drawable.ic_dislike)
-                pokemonSaved = false
-                this.showSnackBar(getString(R.string.pokemon_eliminado_de_favoritos))
-            } else {
-                appviewModel.saveFavoritePokemon(args.pokemonName, 1)
-                binding.likeButton.setImageResource(R.drawable.ic_favorite)
-                pokemonSaved = true
-                this.showSnackBar(getString(R.string.pokemon_guardado_en_favoritos))
-            }
-        }
-
-        setUpRecyclerView()
-
-        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
-            networkListener = NetworkListener()
-            networkListener.checkNetworkAvailability(requireContext()).collect {
-                status ->
-                if (status) {
-                    binding.scrollView2.visibility = View.VISIBLE
-                    binding.emptyDatabaseTextView.visibility = View.GONE
-                    binding.emptyDatabaseImageView.visibility = View.GONE
-                    appviewModel.isFavoritePokemon(args.pokemonName)
-                    requestApiData()
-                } else {
-                    binding.scrollView2.visibility = View.GONE
-                    binding.emptyDatabaseTextView.visibility = View.VISIBLE
-                    binding.emptyDatabaseImageView.visibility = View.VISIBLE
-                    showSnackBar("No hay conexión a internet")
-                }
-
-            }
-        }
         return binding.root
     }
 
-    private fun checkSavedPokemon() {
-        appviewModel.favoritePokemon.observe(viewLifecycleOwner) { favoritePokemon ->
-            if (favoritePokemon == null) {
-                binding.likeButton.setImageResource(R.drawable.ic_dislike)
-                pokemonSaved = false
-            } else {
-                binding.likeButton.setImageResource(R.drawable.ic_favorite)
-                pokemonSaved = true
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding.titlePokemonName.text = args.pokemonName
+        binding.backButton.setOnClickListener { findNavController().popBackStack() }
+        binding.likeButton.setOnClickListener { viewModel.toggleFavorite() }
+
+        setUpRecyclerViews()
+        collectViewModel()
+    }
+
+    private fun setUpRecyclerViews() {
+        binding.recyclerAbilities.adapter = abilitiesAdapter
+        binding.recyclerSprites.adapter = spritesAdapter
+        binding.recyclerSprites.layoutManager = GridLayoutManager(requireContext(), 4)
+    }
+
+    private fun collectViewModel() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch { viewModel.uiState.collect(::render) }
+                launch { viewModel.isFavorite.collect(::renderFavorite) }
+                launch { viewModel.messages.collect { showSnackBar(getString(it)) } }
             }
         }
     }
 
-    private fun requestApiData() {
-        args.let { param ->
-            Log.d(TAG, "Pokemon Name: ${param.pokemonName}")
-            appviewModel.getPokemonDetails(param.pokemonName)
-        }
-
-        appviewModel.pokemonDetailReponse.observe(viewLifecycleOwner) { response ->
-            when(response) {
-                is NetworkResult.Success -> {
-                    response.data?.let { data ->
-                        initUI(data)
-                    }
-                }
-
-                is NetworkResult.Error -> {
-                    Log.d(TAG, "Error: ${response.message}")
-                    binding.progressBar.visibility = View.GONE
-                }
-
-                is NetworkResult.Loading -> {
-                    binding.progressBar.visibility = View.VISIBLE
-                }
+    private fun render(state: DetailUiState) {
+        when (state) {
+            DetailUiState.Loading -> {
+                binding.progressBar.visibility = View.VISIBLE
+                showEmptyState(false)
+            }
+            is DetailUiState.Success -> {
+                binding.progressBar.visibility = View.GONE
+                binding.scrollView2.visibility = View.VISIBLE
+                showEmptyState(false)
+                bindPokemon(state.pokemon)
+            }
+            DetailUiState.Error -> {
+                binding.progressBar.visibility = View.GONE
+                binding.scrollView2.visibility = View.GONE
+                showEmptyState(true)
             }
         }
     }
 
-    private fun initUI(data: PokemonDetail) {
-        binding.backButton.setOnClickListener {
-            findNavController().popBackStack()
-        }
-        binding.imgPokemonProfile.load("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${data.id}.png") {
+    private fun renderFavorite(isFavorite: Boolean) {
+        binding.likeButton.setImageResource(
+            if (isFavorite) R.drawable.ic_favorite else R.drawable.ic_dislike
+        )
+    }
+
+    private fun showEmptyState(show: Boolean) {
+        val visibility = if (show) View.VISIBLE else View.GONE
+        binding.emptyDatabaseTextView.visibility = visibility
+        binding.emptyDatabaseImageView.visibility = visibility
+    }
+
+    private fun bindPokemon(pokemon: PokemonDetail) {
+        binding.imgPokemonProfile.load(pokemon.artworkUrl) {
             binding.progressPokemonProfile.visibility = View.GONE
             crossfade(true)
             crossfade(600)
             error(R.drawable.ic_error_placeholder)
         }
 
-        binding.idPokemon.text = "#${String.format("%03d", data.id)}"
-        binding.titlePokemonName.text = data.name.replaceFirstChar { it.uppercase() }
-        binding.weightValue.text = "${data.weight/10 }kg"
-        binding.heightValue.text = String.format("%.1f mts", data.height / 10.0)
+        binding.idPokemon.text = String.format("#%03d", pokemon.id)
+        binding.titlePokemonName.text = pokemon.name.replaceFirstChar { it.uppercase() }
+        binding.weightValue.text = String.format("%.1f kg", pokemon.weight / 10.0)
+        binding.heightValue.text = String.format("%.1f mts", pokemon.height / 10.0)
 
-        abilitiesAdapter.setData(data.abilities)
-        spritesAdapter.setData(data.sprites)
-        binding.progressBar.visibility = View.GONE
+        abilitiesAdapter.setData(pokemon.abilities)
+        spritesAdapter.setData(pokemon.sprites)
 
-        // Set STATS
-        binding.hpNumberValue.text  = getStat(data.stats[0].baseStat)
-        binding.atkNumberValue.text = getStat(data.stats[1].baseStat)
-        binding.defNumberValue.text = getStat(data.stats[2].baseStat)
-        binding.satkNumberValue.text = getStat(data.stats[3].baseStat)
-        binding.sdefNumberValue.text = getStat(data.stats[4].baseStat)
-        binding.spdNumberValue.text = getStat(data.stats[5].baseStat)
-
-        // Load progress bar
-        binding.hpProgress.progress = data.stats[0].baseStat
-        binding.hpProgress.progressTintList = ContextCompat.getColorStateList(requireContext(), R.color.type_ice)
-
-        binding.atkProgress.progress = data.stats[1].baseStat
-        binding.atkProgress.progressTintList = ContextCompat.getColorStateList(requireContext(), R.color.type_fire)
-
-        binding.defProgress.progress = data.stats[2].baseStat
-        binding.defProgress.progressTintList = ContextCompat.getColorStateList(requireContext(), R.color.type_grass)
-
-        binding.satkProgress.progress = data.stats[3].baseStat
-        binding.sdefProgress.progressTintList = ContextCompat.getColorStateList(requireContext(), R.color.type_water)
-
-        binding.sdefProgress.progress = data.stats[4].baseStat
-        binding.sdefProgress.progressTintList = ContextCompat.getColorStateList(requireContext(), R.color.type_electric)
-
-        binding.spdProgress.progress = data.stats[5].baseStat
-        binding.spdProgress.progressTintList = ContextCompat.getColorStateList(requireContext(), R.color.type_flying)
-
-
-
-        buildChipsTypes(data)
+        bindStats(pokemon)
+        buildChipsTypes(pokemon.types)
     }
 
-    private val getStat: (Int) -> String = { stat ->
-        if (stat.toString().length < 3) "0$stat" else stat.toString()
+    private fun bindStats(pokemon: PokemonDetail) {
+        bindStat(pokemon, "hp", binding.hpNumberValue, binding.hpProgress, R.color.type_ice)
+        bindStat(pokemon, "attack", binding.atkNumberValue, binding.atkProgress, R.color.type_fire)
+        bindStat(pokemon, "defense", binding.defNumberValue, binding.defProgress, R.color.type_grass)
+        bindStat(pokemon, "special-attack", binding.satkNumberValue, binding.satkProgress, R.color.type_water)
+        bindStat(pokemon, "special-defense", binding.sdefNumberValue, binding.sdefProgress, R.color.type_electric)
+        bindStat(pokemon, "speed", binding.spdNumberValue, binding.spdProgress, R.color.type_flying)
     }
 
-    private fun buildChipsTypes(data: PokemonDetail) {
+    private fun bindStat(
+        pokemon: PokemonDetail,
+        statName: String,
+        valueView: TextView,
+        progressView: ProgressBar,
+        @ColorRes colorRes: Int,
+    ) {
+        val value = pokemon.statValue(statName)
+        valueView.text = String.format("%03d", value)
+        progressView.progress = value
+        progressView.progressTintList = ContextCompat.getColorStateList(requireContext(), colorRes)
+    }
 
-        val typeColorMap = mapOf(
+    private fun buildChipsTypes(types: List<String>) {
+        binding.chipGroupType.removeAllViews()
+
+        types.forEachIndexed { index, typeName ->
+            val colorResId = TYPE_COLORS[typeName] ?: R.color.type_normal
+
+            // El primer tipo define el color de fondo del contenedor
+            if (index == 0) {
+                binding.containerPokemonProfile.setBackgroundColor(
+                    ContextCompat.getColor(requireContext(), colorResId)
+                )
+            }
+
+            val chip = layoutInflater.inflate(R.layout.item_chip_type, binding.chipGroupType, false) as Chip
+            chip.text = typeName.replaceFirstChar { it.uppercase() }
+            chip.setChipBackgroundColorResource(colorResId)
+            chip.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+            chip.setChipStrokeColorResource(colorResId)
+            binding.chipGroupType.addView(chip)
+        }
+    }
+
+    private fun showSnackBar(message: String) {
+        Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT)
+            .setAction(getString(R.string.okey)) {}
+            .show()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        binding.recyclerAbilities.adapter = null
+        binding.recyclerSprites.adapter = null
+        _binding = null
+    }
+
+    private companion object {
+        val TYPE_COLORS = mapOf(
             "normal" to R.color.type_normal,
             "fire" to R.color.type_fire,
             "water" to R.color.type_water,
@@ -219,70 +203,7 @@ class DetailFragment : Fragment() {
             "dragon" to R.color.type_dragon,
             "dark" to R.color.type_dark,
             "steel" to R.color.type_steel,
-            "fairy" to R.color.type_fairy
+            "fairy" to R.color.type_fairy,
         )
-
-        // Set TYPES
-        binding.chipGroupType.removeAllViews()
-
-        var wasBacroundChanged = false
-
-        data.types.forEach { type ->
-            val typeName = type.type.name
-            val colorResId = typeColorMap[typeName] ?: R.color.type_normal
-
-            if (!wasBacroundChanged) {
-                // Cambiar el color de fondo del background contenedor
-                binding.containerPokemonProfile.setBackgroundColor(ContextCompat.getColor(requireContext(), colorResId))
-                wasBacroundChanged = true
-            }
-
-            val chip = layoutInflater.inflate(R.layout.item_chip_type, binding.chipGroupType, false) as Chip
-            chip.text = typeName.replaceFirstChar { it.uppercase() }
-            // Cambiar el color de fondo del Chip
-            chip.setChipBackgroundColorResource(colorResId)
-
-            // Cambiar el color del texto del Chip
-            val textColor = ContextCompat.getColor(requireContext(), R.color.white)
-            chip.setTextColor(textColor)
-
-            // Cambiar el color del borde del Chip
-            chip.setChipStrokeColorResource(colorResId)
-            binding.chipGroupType.addView(chip)
-        }
-    }
-
-    private fun setUpRecyclerView() {
-
-        // Setting recycler view for abilities
-        binding.recyclerAbilities.adapter = abilitiesAdapter
-        binding.recyclerSprites.layoutManager = GridLayoutManager(requireContext(), 2)
-
-        // setting recycler view for sprites
-        binding.recyclerSprites.adapter = spritesAdapter
-        binding.recyclerSprites.layoutManager = GridLayoutManager(requireContext(), 4)
-
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        args.let { param ->
-            binding.titlePokemonName.text = param.pokemonName
-        }
-
-    }
-
-    private fun showSnackBar(message: String) {
-        Snackbar.make(
-            binding.root,
-            message,
-            Snackbar.LENGTH_SHORT
-        ).setAction(getString(R.string.okey)){}.show()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 }

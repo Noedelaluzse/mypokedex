@@ -5,88 +5,81 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.noedelaluz.mypokedex.databinding.FragmentFavoriteBinding
+import com.noedelaluz.mypokedex.di.appContainer
 import com.noedelaluz.mypokedex.domain.models.Pokemon
-import com.noedelaluz.mypokedex.domain.models.PokemonResponse
 import com.noedelaluz.mypokedex.presentation.ui.adapters.PokemonAdapter
-import com.noedelaluz.mypokedex.presentation.viewmodels.AppViewModel
 import kotlinx.coroutines.launch
-
 
 class FavoriteFragment : Fragment() {
 
     private var _binding: FragmentFavoriteBinding? = null
     private val binding get() = _binding!!
-    private val TAG = "FavoriteFragment"
-    private val favoriteAdapter by lazy { PokemonAdapter() }
-    private lateinit var appViewModel: AppViewModel
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    private val viewModel: FavoriteViewModel by viewModels { appContainer().favoriteViewModelFactory }
 
-        appViewModel = ViewModelProvider(requireActivity())[AppViewModel::class.java]
-    }
+    private val favoriteAdapter = PokemonAdapter(onPokemonClick = ::openDetail)
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentFavoriteBinding.inflate(inflater, container, false)
-
-        setupRecyclerView()
-
-        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
-            readDatabase()
-        }
-
         return binding.root
     }
 
-    private fun readDatabase() {
-        lifecycleScope.launch {
-            appViewModel.readFavoritePokemon.observe(viewLifecycleOwner) { database ->
-                if (database.results.isNotEmpty()) {
-                    binding.emptyDatabaseImageView.visibility = View.GONE
-                    binding.emptyDatabaseTextView.visibility = View.GONE
-                    binding.favoriteRecipesRecyclerView.visibility = View.VISIBLE
-                    val response = database.results
-                    val pokemonList = parseEntityToModelList(response)
-                    favoriteAdapter.setData(pokemonList, TAG)
-                } else {
-                    binding.favoriteRecipesRecyclerView.visibility = View.INVISIBLE
-                    binding.emptyDatabaseImageView.visibility = View.VISIBLE
-                    binding.emptyDatabaseTextView.visibility = View.VISIBLE
-                }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding.favoriteRecipesRecyclerView.adapter = favoriteAdapter
+        binding.favoriteRecipesRecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect(::render)
             }
         }
     }
 
-    private fun parseEntityToModelList(responseList: List<PokemonResponse>): List<Pokemon> {
-        // Crear un List<Pokemon> a partir de la lista de PokemonEntity
-        val pokemonLists = responseList.mapIndexed { index, pokemonResponse ->
-            val urlParts = pokemonResponse.url.split("/")
-            val id = urlParts[urlParts.size - 2].toInt()
-            val picture = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png"
-            Pokemon(
-                name = pokemonResponse.name,
-                picture = picture,
-                id = id
-            )
+    private fun render(state: FavoriteUiState) {
+        when (state) {
+            FavoriteUiState.Loading -> {
+                binding.favoriteRecipesRecyclerView.visibility = View.INVISIBLE
+                showEmptyState(false)
+            }
+            FavoriteUiState.Empty -> {
+                favoriteAdapter.submitList(emptyList())
+                binding.favoriteRecipesRecyclerView.visibility = View.INVISIBLE
+                showEmptyState(true)
+            }
+            is FavoriteUiState.Success -> {
+                binding.favoriteRecipesRecyclerView.visibility = View.VISIBLE
+                showEmptyState(false)
+                favoriteAdapter.submitList(state.pokemon)
+            }
         }
-
-        return pokemonLists
-    }
-    private fun setupRecyclerView() {
-        binding.favoriteRecipesRecyclerView.adapter = favoriteAdapter
-        binding.favoriteRecipesRecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
     }
 
+    private fun showEmptyState(show: Boolean) {
+        val visibility = if (show) View.VISIBLE else View.GONE
+        binding.emptyDatabaseImageView.visibility = visibility
+        binding.emptyDatabaseTextView.visibility = visibility
+    }
+
+    private fun openDetail(pokemon: Pokemon) {
+        findNavController().navigate(
+            FavoriteFragmentDirections.actionFavoriteFragmentToDetailFragment(pokemon.name)
+        )
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        binding.favoriteRecipesRecyclerView.adapter = null
         _binding = null
     }
 }

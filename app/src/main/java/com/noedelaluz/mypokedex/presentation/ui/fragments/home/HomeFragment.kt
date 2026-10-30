@@ -1,23 +1,21 @@
 package com.noedelaluz.mypokedex.presentation.ui.fragments.home
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.noedelaluz.mypokedex.databinding.FragmentHomeBinding
+import com.noedelaluz.mypokedex.di.appContainer
 import com.noedelaluz.mypokedex.domain.models.Pokemon
-import com.noedelaluz.mypokedex.domain.models.PokemonResponse
-import com.noedelaluz.mypokedex.infrastructure.utils.NetworkListener
-import com.noedelaluz.mypokedex.infrastructure.utils.NetworkResult
-import com.noedelaluz.mypokedex.infrastructure.utils.observeOnce
 import com.noedelaluz.mypokedex.presentation.ui.adapters.PokemonAdapter
-import com.noedelaluz.mypokedex.presentation.viewmodels.AppViewModel
 import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
@@ -25,132 +23,65 @@ class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
 
-    private val TAG = "HomeFragment"
+    private val viewModel: HomeViewModel by viewModels { appContainer().homeViewModelFactory }
 
-    private var dataRequest = false
-    private lateinit var appviewModel: AppViewModel
-    private val mAdapter by lazy { PokemonAdapter() }
-    private lateinit var networkListener: NetworkListener
+    private val pokemonAdapter = PokemonAdapter(onPokemonClick = ::openDetail)
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        appviewModel = ViewModelProvider(requireActivity())[AppViewModel::class.java]
-
-    }
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
-
-        setupRecyclerView()
-
-        appviewModel.readBackOnline.observe(viewLifecycleOwner) {
-            appviewModel.backOnline = it
-        }
-
-        // TODO: Implement network listener to check network availability and use local data if network is not available
-        lifecycleScope.launchWhenStarted {
-            networkListener = NetworkListener()
-            networkListener.checkNetworkAvailability(requireContext()).collect {
-                status ->
-                Log.d("NetworkListener", status.toString())
-                appviewModel.networkStatus = status
-                appviewModel.showNetworkStatus()
-                readDatabase()
-            }
-        }
         return binding.root
     }
 
-    private fun readDatabase() {
-        lifecycleScope.launch {
-            appviewModel.readPokemon.observeOnce(viewLifecycleOwner) { database ->
-
-                if (database.results.isNotEmpty()) {
-                    hideShimmerEffect()
-                    Log.d(TAG, "readDatabase called!")
-                    val response = database.results
-
-                    // Crear un List<Pokemon> a partir de la lista de PokemonResponse
-                    val pokemonList = parseEntityToModelList(response)
-                    mAdapter.setData(pokemonList, TAG)
-
-                } else {
-                    if (!dataRequest) {
-                        Log.d(TAG, "readDatabase called! But database is empty!")
-                        requestApiData()
-                    }
-
-                }
-            }
-        }
-    }
-
-    private fun requestApiData() {
-        Log.d("HomeFragment","requesApiData called" )
-        appviewModel.getPokemonList()
-        appviewModel.pokemonResponse.observe(viewLifecycleOwner) { response ->
-            when (response) {
-                is NetworkResult.Success -> {
-                    this.hideShimmerEffect()
-                    response.data?.let { data ->
-                        val response = data.results
-                        // Crear un List<Pokemon> a partir de la lista de PokemonResponse
-                        val pokemonList = parseEntityToModelList(response)
-                        mAdapter.setData(pokemonList, TAG) }
-                }
-                is NetworkResult.Error -> {
-                    this.hideShimmerEffect()
-                    loadDataFromCache()
-                    Toast.makeText(requireContext(), response.message, Toast.LENGTH_SHORT).show()
-
-                }
-                is NetworkResult.Loading -> {
-                    showShimmerEffect()
-                }
-            }
-        }
-    }
-
-    private fun loadDataFromCache() {
-        lifecycleScope.launch {
-            appviewModel.readPokemon.observe(viewLifecycleOwner) { database ->
-                if (database.results.isNotEmpty()) {
-                    binding.emptyDatabaseImageView.visibility = View.GONE
-                    binding.emptyDatabaseTextView.visibility = View.GONE
-                    val responseList = database.results
-                    val pokemonList = parseEntityToModelList(responseList)
-                    mAdapter.setData(pokemonList, TAG)
-                } else {
-                    Log.d(TAG, "loadDataFromCache: Database is empty!")
-                    binding.emptyDatabaseImageView.visibility = View.VISIBLE
-                    binding.emptyDatabaseTextView.visibility = View.VISIBLE
-                }
-            }
-        }
-    }
-
-    private fun parseEntityToModelList(responseList: List<PokemonResponse>): List<Pokemon> {
-        // Crear un List<Pokemon> a partir de la lista de PokemonEntity
-        val pokemonLists = responseList.mapIndexed { index, pokemonResponse ->
-            val urlParts = pokemonResponse.url.split("/")
-            val id = urlParts[urlParts.size - 2].toInt()
-            val picture = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png"
-            Pokemon(
-                name = pokemonResponse.name,
-                picture = picture,
-                id = id
-            )
-        }
-
-        return pokemonLists
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setupRecyclerView()
+        collectViewModel()
     }
 
     private fun setupRecyclerView() {
-        binding.pokemonRecyclerview.adapter = mAdapter
+        binding.pokemonRecyclerview.adapter = pokemonAdapter
         binding.pokemonRecyclerview.layoutManager = GridLayoutManager(requireContext(), 2)
+    }
+
+    private fun collectViewModel() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch { viewModel.uiState.collect(::render) }
+                launch {
+                    viewModel.messages.collect { messageRes ->
+                        Toast.makeText(requireContext(), messageRes, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun render(state: HomeUiState) {
+        when (state) {
+            HomeUiState.Loading -> {
+                showEmptyState(false)
+                showShimmerEffect()
+            }
+            is HomeUiState.Success -> {
+                hideShimmerEffect()
+                showEmptyState(false)
+                pokemonAdapter.submitList(state.pokemon)
+            }
+            HomeUiState.Error -> {
+                hideShimmerEffect()
+                binding.pokemonRecyclerview.visibility = View.GONE
+                showEmptyState(true)
+            }
+        }
+    }
+
+    private fun showEmptyState(show: Boolean) {
+        val visibility = if (show) View.VISIBLE else View.GONE
+        binding.emptyDatabaseImageView.visibility = visibility
+        binding.emptyDatabaseTextView.visibility = visibility
     }
 
     private fun showShimmerEffect() {
@@ -165,8 +96,15 @@ class HomeFragment : Fragment() {
         binding.pokemonRecyclerview.visibility = View.VISIBLE
     }
 
+    private fun openDetail(pokemon: Pokemon) {
+        findNavController().navigate(
+            HomeFragmentDirections.actionHomeFragmentToDetailFragment(pokemon.name)
+        )
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
+        binding.pokemonRecyclerview.adapter = null
         _binding = null
     }
 }

@@ -7,46 +7,32 @@ import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.noedelaluz.mypokedex.R
-import com.noedelaluz.mypokedex.domain.models.Sprites
 
-class SpriteAdapter(): RecyclerView.Adapter<SpriteAdapter.MyViewHolder>() {
+class SpriteAdapter : RecyclerView.Adapter<SpriteAdapter.MyViewHolder>() {
 
-    private var dataset: List<String> = emptyList()
+    private var sprites: List<String> = emptyList()
 
-    class MyViewHolder(view: View): RecyclerView.ViewHolder(view) {
-        val sprite = view.findViewById<ImageView>(R.id.sprite_image)
+    class MyViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val sprite: ImageView = view.findViewById(R.id.sprite_image)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SpriteAdapter.MyViewHolder {
-        val adapterLayout = LayoutInflater.from(parent.context).inflate(R.layout.sprite_card, parent, false)
-        return MyViewHolder(adapterLayout)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.sprite_card, parent, false)
+        return MyViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: SpriteAdapter.MyViewHolder, position: Int) {
-        val item = dataset[position]
-
-        holder.sprite.load(item) {
+    override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
+        holder.sprite.load(sprites[position]) {
             crossfade(true)
             crossfade(600)
             error(R.drawable.ic_error_placeholder)
         }
     }
 
-    override fun getItemCount(): Int {
-        return dataset.size
-    }
+    override fun getItemCount(): Int = sprites.size
 
-    fun setData(newData: Sprites) {
-        val list = mutableListOf<String>()
-
-        list.add(newData.backDefault)
-        list.add(newData.backShiny)
-        list.add(newData.frontDefault)
-        list.add(newData.frontShiny)
-
-        dataset = list
-
+    fun setData(newData: List<String>) {
+        sprites = newData
         notifyDataSetChanged()
     }
-
 }
