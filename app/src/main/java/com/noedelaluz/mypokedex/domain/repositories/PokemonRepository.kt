@@ -1,19 +1,22 @@
 package com.noedelaluz.mypokedex.domain.repositories
 
-import com.noedelaluz.mypokedex.data.database.entities.PokemonEntity
+import com.noedelaluz.mypokedex.domain.models.Pokemon
 import com.noedelaluz.mypokedex.domain.models.PokemonDetail
-import com.noedelaluz.mypokedex.domain.models.PokemonResponse
-import com.noedelaluz.mypokedex.domain.models.PokemonListResponse
 import kotlinx.coroutines.flow.Flow
 
-abstract class PokemonRepository {
-    abstract suspend fun getPokemon(): PokemonListResponse
-    abstract suspend fun getPokemonById(id: String): PokemonDetail
+interface PokemonRepository {
 
-    abstract suspend fun savePokemon(pokemonList: List<PokemonResponse>): Boolean
+    /** Lista guardada localmente. Es la única fuente de verdad de la pantalla principal. */
+    fun observePokemon(): Flow<List<Pokemon>>
 
-    abstract suspend fun isFavoritePokemon(name: String): PokemonEntity?
-    abstract suspend fun saveFavoritePokemon(name: String, isFavorite: Int): Int
-    abstract fun getPokemonList(): Flow<PokemonListResponse>
-    abstract fun getFavoritePokemonList(): Flow<PokemonListResponse>
+    fun observeFavorites(): Flow<List<Pokemon>>
+
+    fun observeIsFavorite(name: String): Flow<Boolean>
+
+    /** Descarga la lista desde la red y la guarda localmente. */
+    suspend fun refreshPokemon(): Result<Unit>
+
+    suspend fun getPokemonDetail(name: String): Result<PokemonDetail>
+
+    suspend fun setFavorite(name: String, isFavorite: Boolean)
 }

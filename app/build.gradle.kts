@@ -3,7 +3,6 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("androidx.navigation.safeargs.kotlin")
     id("kotlin-kapt")
-    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -36,6 +35,7 @@ android {
     buildFeatures {
         viewBinding =  true
         dataBinding = true
+        buildConfig = true
     }
 
     kotlinOptions {
@@ -49,12 +49,11 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.10.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 
+    // Navigation
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.4")
     implementation("androidx.navigation:navigation-ui-ktx:2.7.4")
+    implementation("androidx.fragment:fragment-ktx:1.6.1")
 
     // Shimmer
     implementation("com.facebook.shimmer:shimmer:0.5.0")
@@ -68,24 +67,21 @@ dependencies {
     // Coil
     implementation("io.coil-kt:coil:2.4.0")
 
-    // Lifecycle
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.1")
-
-    //Dagger - Hilt
-    implementation("com.google.dagger:hilt-android:2.44")
-    kapt("com.google.dagger:hilt-android-compiler:2.44")
+    // Lifecycle (ViewModel, repeatOnLifecycle)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
 
     // ROOM
     implementation("androidx.room:room-runtime:2.6.1")
     kapt("androidx.room:room-compiler:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
+
+    // Tests
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation("androidx.room:room-testing:2.6.1")
-
-    // Lifecycle
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.1")
-
-    // Data store
-    implementation("androidx.datastore:datastore-preferences:1.1.0-alpha05")
 }
 
 // Allow references to generated code
