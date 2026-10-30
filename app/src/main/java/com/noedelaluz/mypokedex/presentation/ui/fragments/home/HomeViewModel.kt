@@ -6,6 +6,7 @@ import com.noedelaluz.mypokedex.R
 import com.noedelaluz.mypokedex.domain.connectivity.ConnectivityObserver
 import com.noedelaluz.mypokedex.domain.usecase.pokemon.GetPokemonList
 import com.noedelaluz.mypokedex.domain.usecase.pokemon.RefreshPokemonList
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,8 +16,10 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class HomeViewModel(
+@HiltViewModel
+class HomeViewModel @Inject constructor(
     getPokemonList: GetPokemonList,
     private val refreshPokemonList: RefreshPokemonList,
     connectivityObserver: ConnectivityObserver,

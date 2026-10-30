@@ -10,8 +10,9 @@ import com.noedelaluz.mypokedex.domain.models.PokemonDetail
 import com.noedelaluz.mypokedex.domain.repositories.PokemonRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 
-class PokemonRepositoryImpl(
+class PokemonRepositoryImpl @Inject constructor(
     private val remote: PokemonRemoteDataSource,
     private val local: PokemonLocalDataSource,
 ) : PokemonRepository {

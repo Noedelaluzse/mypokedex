@@ -4,6 +4,7 @@ import androidx.room.withTransaction
 import com.noedelaluz.mypokedex.data.database.PokemonDatabase
 import com.noedelaluz.mypokedex.data.database.entities.PokemonEntity
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
 interface PokemonLocalDataSource {
     fun observePokemon(): Flow<List<PokemonEntity>>
@@ -15,7 +16,7 @@ interface PokemonLocalDataSource {
     suspend fun setFavorite(name: String, isFavorite: Boolean)
 }
 
-class PokemonLocalDataSourceImpl(
+class PokemonLocalDataSourceImpl @Inject constructor(
     private val database: PokemonDatabase
 ) : PokemonLocalDataSource {
 

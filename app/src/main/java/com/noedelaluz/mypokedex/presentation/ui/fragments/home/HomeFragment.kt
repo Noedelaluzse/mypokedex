@@ -13,17 +13,18 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.noedelaluz.mypokedex.databinding.FragmentHomeBinding
-import com.noedelaluz.mypokedex.di.appContainer
 import com.noedelaluz.mypokedex.domain.models.Pokemon
 import com.noedelaluz.mypokedex.presentation.ui.adapters.PokemonAdapter
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class HomeFragment : Fragment() {
 
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: HomeViewModel by viewModels { appContainer().homeViewModelFactory }
+    private val viewModel: HomeViewModel by viewModels()
 
     private val pokemonAdapter = PokemonAdapter(onPokemonClick = ::openDetail)
 

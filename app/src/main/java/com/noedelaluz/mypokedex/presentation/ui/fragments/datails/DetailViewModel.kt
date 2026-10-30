@@ -1,5 +1,6 @@
 package com.noedelaluz.mypokedex.presentation.ui.fragments.datails
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.noedelaluz.mypokedex.R
@@ -7,6 +8,7 @@ import com.noedelaluz.mypokedex.domain.connectivity.ConnectivityObserver
 import com.noedelaluz.mypokedex.domain.usecase.pokemon.GetPokemonDetail
 import com.noedelaluz.mypokedex.domain.usecase.pokemon.ObserveIsFavorite
 import com.noedelaluz.mypokedex.domain.usecase.pokemon.SetFavoritePokemon
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,14 +18,19 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class DetailViewModel(
-    private val pokemonName: String,
+@HiltViewModel
+class DetailViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val getPokemonDetail: GetPokemonDetail,
     observeIsFavorite: ObserveIsFavorite,
     private val setFavoritePokemon: SetFavoritePokemon,
     connectivityObserver: ConnectivityObserver,
 ) : ViewModel() {
+
+    // Argumento "pokemonName" del nav graph; Hilt lo entrega en el SavedStateHandle
+    private val pokemonName: String = checkNotNull(savedStateHandle[POKEMON_NAME_KEY])
 
     private val _uiState = MutableStateFlow<DetailUiState>(DetailUiState.Loading)
     val uiState: StateFlow<DetailUiState> = _uiState.asStateFlow()
@@ -78,5 +85,6 @@ class DetailViewModel(
 
     private companion object {
         const val STOP_TIMEOUT_MS = 5_000L
+        const val POKEMON_NAME_KEY = "pokemonName"
     }
 }

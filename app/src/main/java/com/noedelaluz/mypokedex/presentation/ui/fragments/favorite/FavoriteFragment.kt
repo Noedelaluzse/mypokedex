@@ -12,17 +12,18 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.noedelaluz.mypokedex.databinding.FragmentFavoriteBinding
-import com.noedelaluz.mypokedex.di.appContainer
 import com.noedelaluz.mypokedex.domain.models.Pokemon
 import com.noedelaluz.mypokedex.presentation.ui.adapters.PokemonAdapter
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class FavoriteFragment : Fragment() {
 
     private var _binding: FragmentFavoriteBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: FavoriteViewModel by viewModels { appContainer().favoriteViewModelFactory }
+    private val viewModel: FavoriteViewModel by viewModels()
 
     private val favoriteAdapter = PokemonAdapter(onPokemonClick = ::openDetail)
 

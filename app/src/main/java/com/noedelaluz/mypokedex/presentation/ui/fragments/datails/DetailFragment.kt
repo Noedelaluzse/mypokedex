@@ -21,12 +21,13 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
 import com.noedelaluz.mypokedex.R
 import com.noedelaluz.mypokedex.databinding.FragmentDetailBinding
-import com.noedelaluz.mypokedex.di.appContainer
 import com.noedelaluz.mypokedex.domain.models.PokemonDetail
 import com.noedelaluz.mypokedex.presentation.ui.adapters.AbilitiesAdapter
 import com.noedelaluz.mypokedex.presentation.ui.adapters.SpriteAdapter
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class DetailFragment : Fragment() {
 
     private var _binding: FragmentDetailBinding? = null
@@ -34,9 +35,7 @@ class DetailFragment : Fragment() {
 
     private val args: DetailFragmentArgs by navArgs()
 
-    private val viewModel: DetailViewModel by viewModels {
-        appContainer().detailViewModelFactory(args.pokemonName)
-    }
+    private val viewModel: DetailViewModel by viewModels()
 
     private val abilitiesAdapter = AbilitiesAdapter()
     private val spritesAdapter = SpriteAdapter()
